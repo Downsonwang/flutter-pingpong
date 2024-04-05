@@ -39,10 +39,10 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   
 
-  const MyHomePage({super.key});
+  const MyHomePage({Key? key}) : super(key: key);
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 enum Direction {
   Up,
@@ -51,6 +51,11 @@ enum Direction {
   Right,
 }
 class _MyHomePageState extends State<MyHomePage> {
+ 
+  int scoreUp = 0;
+  int scoreDown = 0;
+    // 设置小球的初始坐标为屏幕中心的位置
+ 
   double ballX =0;
   double ballY = 0;
   // 记录班子 x轴坐标
@@ -60,85 +65,133 @@ class _MyHomePageState extends State<MyHomePage> {
  // 开始游戏后 消除文字
     bool isRunning = false;
     Direction direction = Direction.Down;
-    Direction hDirection = Direction.Left;
+    Direction hDirection = Direction.Right;
+    late Timer timer;
+ 
+
   start(){
     setState(() {
       isRunning = true;
     });
-    Timer.periodic(Duration(milliseconds: 50), (timer) { 
+   timer =  Timer.periodic(Duration(milliseconds: 20), (timer) { 
       double newBallY = ballY;
       double newBallX = ballX;
+      double newUpx = upX;
+      double newDownx = downX;
       // 球的位置是不是已经小于最下面或者超出最上面
       Direction newDirection = direction;
       Direction newHDirection = hDirection;
       switch (direction) {
         case Direction.Up:
         newBallY -= ballStep;
+        
+        setState(() {
+          
+        });
         break;
         case Direction.Down:
          newBallY += ballStep;
+         setState(() {
+           
+         });
+       
         break;
         default: 
       }
 
       switch (hDirection) {
         case Direction.Left:
-         newBallX -= ballStep;
+         newBallX -= ballStep *2;
          break;
         case Direction.Right:
-        newBallX += ballStep;
+        newBallX += ballStep * 2;
          break;
+        default:
       }
 
+      final rocketLen = 2 / 3;
+
       if(newBallY <= -maxY ){
-         if(newBallX < (upX - 0.333)|| newBallX > (upX + 0.333) ){
+         if(newBallX < (upX - rocketLen / 2) || newBallX > (upX + rocketLen / 2) ){
           setState(() {
             isRunning = false;
           });
           timer.cancel();
          }
-        newDirection = Direction.Down;
+           if  (newBallX > (upX - rocketLen/2) && newBallX < (upX + rocketLen/2)){
+              scoreUp++;
+             
+           }
+            newDirection = Direction.Down;
+
       } else if(newBallY >= maxY) {
-        if(newBallX < (downX - 0.333)|| newBallX > (downX + 0.333) ){
+        if(newBallX < (downX - rocketLen/2) || newBallX > (downX + rocketLen/2) ){
           setState(() {
             isRunning = false;
           });
                timer.cancel();
          }
+
+         if (newBallX > (downX - rocketLen/2) && newBallX < (downX + rocketLen/2)){
+         scoreDown++;
+         }
         newDirection = Direction.Up;
+      
+
       }
 
-         if(newBallY <= -1 ){
+         if(newBallX <= -1 ){
         newHDirection = Direction.Right;
-      } else if(newBallY >= 1) {
+      } else if(newBallX >= 1) {
         newHDirection = Direction.Left;
       }
+     
+   
       setState(() {
+      scoreUp = scoreUp;
+      scoreDown = scoreDown;
       ballY = newBallY;
       ballX = newBallX;
       direction = newDirection;
-
+      hDirection = newHDirection;
 
     });
     });
   }
   @override
   Widget build(BuildContext context) {
+   
     return Scaffold(
       backgroundColor: Colors.white,
       body: RawKeyboardListener(focusNode: FocusNode(), autofocus: true,onKey: (event) {
         // down 键盘
-        if(event.runtimeType == RawKeyDownEvent){
+        if(event.runtimeType == RawKeyDownEvent && direction == Direction.Up){
           switch (event.logicalKey.keyLabel) {
             case "Arrow Left":
                setState(() {
                  upX = upX - step;
-                 downX = downX - step;
+                
                });
                break;
             case  "Arrow Right":
             setState(() {
                  upX = upX + step;
+                
+               });
+               break;
+            default:
+          }
+        }else if (event.runtimeType == RawKeyDownEvent && direction == Direction.Down){
+           switch (event.logicalKey.keyLabel) {
+            case "Arrow Left":
+               setState(() {
+               
+                 downX = downX - step;
+               });
+               break;
+            case  "Arrow Right":
+            setState(() {
+               
                  downX = downX + step;
                });
                break;
@@ -154,9 +207,18 @@ class _MyHomePageState extends State<MyHomePage> {
        children:[
 
         StartScreen(isShow: !isRunning,),
+        
         Racket(x: upX, y: -maxY, color: Colors.red),
-        Ball(x: ballX, y: ballY),
+        Positioned(
+            right: 0, // 假设 racketWidth 是球拍的宽度
+            child: Text('Score: $scoreUp', style: TextStyle(fontSize: 24))), 
+         Ball(x: ballX, y: ballY),
         Racket(x: downX, y: maxY, color: Colors.black),
+              Positioned(
+            left: 0,bottom: 0, // 假设 racketWidth 是球拍的宽度
+            child: Text('Score: $scoreDown', style: TextStyle(fontSize: 24))),
+
+        
        ],
       )
     ),));
