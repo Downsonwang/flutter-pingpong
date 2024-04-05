@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pingpong/ball.dart';
@@ -170,7 +171,7 @@ class _MyHomePageState extends State<MyHomePage> {
             case "Arrow Left":
                setState(() {
                  upX = upX - step;
-                
+                 
                });
                break;
             case  "Arrow Right":
@@ -197,7 +198,14 @@ class _MyHomePageState extends State<MyHomePage> {
                break;
             default:
           }
+        
         }
+          upX = upX.clamp(-1, 1);
+          downX = downX.clamp(-1, 1);
+          setState(() {
+            upX = upX;
+            downX = downX;
+          });
       }, 
       child: GestureDetector(
         onTap: () {
